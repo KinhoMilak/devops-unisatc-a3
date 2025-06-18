@@ -33,10 +33,10 @@ jobs:
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch # Tag para branches (e.g., main, master)
+            type=raw,value=pr-${{ github.event.pull_request.number }},enable=${{ github.event_name == 'pull_request' }} # Tag para PRs
+            type=sha,prefix={{branch}}- # Tag com SHA e prefixo da branch
+            type=raw,value=latest,enable={{is_default_branch}} # Tag 'latest' para a branch padrão
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
