@@ -34,9 +34,8 @@ jobs:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
             type=ref,event=branch # Ex: main -> seu_usuario/strapi-cms:main
-            # Esta linha abaixo é a principal alteração para PRs
             type=raw,value=pr-${{ github.event.number }},enable=${{ github.event_name == 'pull_request' }} 
-            type=sha,prefix={{branch}}- # Ex: feature-abc-bfcc681
+            type=sha,prefix=sha- # Ex: sha-bfcc681
             type=raw,value=latest,enable={{is_default_branch}} # Ex: seu_usuario/strapi-cms:latest
 
       - name: Build and push Docker image
