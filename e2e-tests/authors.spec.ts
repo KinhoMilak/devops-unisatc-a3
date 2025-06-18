@@ -10,7 +10,7 @@ test.describe('Gerenciamento de Autores', () => {
     await page.goto(STRAPI_ADMIN_URL);
     await page.fill('input[name="email"]', ADMIN_EMAIL);
     await page.fill('input[name="password"]', ADMIN_PASSWORD);
-    await page.click('button[type="submit"]');
+    await page.click('button[type="submit"]');;;//simula erro de digitação
     await page.waitForURL(STRAPI_ADMIN_URL);
     await expect(page.locator('h1', { hasText: 'Dashboard' })).toBeVisible();
   });
