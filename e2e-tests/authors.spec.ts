@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 const STRAPI_ADMIN_URL = 'http://localhost:1337/admin';
-const ADMIN_EMAIL = 'admin@satc.edu.br';
+const ADMIN_EMAIL = 'admin@tetetetet.edu.br';
 const ADMIN_PASSWORD = 'welcomeToStrapi123';
 
 test.describe('Gerenciamento de Autores', () => {
