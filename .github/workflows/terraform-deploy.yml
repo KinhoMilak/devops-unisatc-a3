@@ -1,0 +1,59 @@
+# .github/workflows/terraform-deploy.yml
+name: Terraform Deploy to AWS ECS
+
+on:
+  push:
+    branches:
+      - main # Executa após o push para main (idealmente, após o Docker build)
+  workflow_dispatch: # Permite disparar o workflow manualmente
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production # Você pode criar um ambiente no GitHub para isso
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1 # Substitua pela sua região da AWS
+      DOCKER_REPO: <SEU_USUARIO_DOCKERHUB>/devops-unisatc-strapi # Seu repositório Docker Hub
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.x.x # Use a versão do Terraform que você testou
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform # Altere para o diretório do seu Terraform
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -var="image_tag=${{ github.sha }}"
+        working-directory: ./terraform
+        continue-on-error: true # Permite que o workflow continue mesmo se o plan falhar para inspeção
+
+      - name: Terraform Apply
+        if: steps.plan.outcome == 'success' && github.ref == 'refs/heads/main' # Aplica apenas se o plan for bem-sucedido e for um push para main
+        run: terraform apply -auto-approve -var="image_tag=${{ github.sha }}"
+        working-directory: ./terraform
+
+      - name: Get Strapi URL
+        if: steps.plan.outcome == 'success' && github.ref == 'refs/heads/main'
+        run: |
+          echo "STRAPI_URL=$(terraform output -raw strapi_url)" >> $GITHUB_ENV
+        working-directory: ./terraform
+
+      - name: Output Strapi URL
+        if: steps.plan.outcome == 'success' && github.ref == 'refs/heads/main'
+        run: echo "Strapi URL: ${{ env.STRAPI_URL }}"
